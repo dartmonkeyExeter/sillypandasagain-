@@ -1,12 +1,42 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+from random import randint
 
 df = pd.read_csv("Task3_data.csv")  # import df
 pd.set_option('display.max_columns', None)  # set display all columns
+pd.options.mode.chained_assignment = None
 
 possible_destinations = df.drop(columns=["Month", "Airline", "Price"])
 possible_destinations = possible_destinations.drop_duplicates()
 print(possible_destinations)  # print possible destinations
+months_to_numbers = {
+    "January": 1,
+    "February": 2,
+    "March": 3,
+    "April": 4,
+    "May": 5,
+    "June": 6,
+    "July": 7,
+    "August": 8,
+    "September": 9,
+    "October": 10,
+    "November": 11,
+    "December": 12,
+}
+numbers_to_months = {
+    1: "January",
+    2: "February",
+    3: "March",
+    4: "April",
+    5: "May",
+    6: "June",
+    7: "July",
+    8: "August",
+    9: "September",
+    10: "October",
+    11: "November",
+    12: "December",
+}
 
 while True:
     destination = input("What destination would you like to go?\n").strip()
@@ -71,26 +101,42 @@ if best_price_month[0] == "y":
             continue
         break
 
-    best = df[(df['Destination'] == destination)]
-    best = best.sort_values(by='Price')
-    best = best.drop_duplicates(subset='Month')
-    best = best.sort_index()
-    plt.plot(best["Month"], best["Price"],color="mediumorchid",label="best")
-    plt.title(f'Airline prices for {destination} over the year.')
-    plt.legend()
-
     airline_colors = ['firebrick', 'moccasin', 'salmon', 'mediumseagreen',
-                       'royalblue', 'lavender']
-
+                      'royalblue', 'lavender', 'aquamarine', 'red', 'blue', 'purple', 'green']
     best = df[(df['Destination'] == destination)]
-    best = best.sort_values(by="Airline")
-    airlines = best["Airline"]
-    for idx, col in enumerate(airlines):
-        Airline = airlines.iloc[idx]
-        print(Airline)
-        current_color = idx
-        best = best.drop()
-        plt.scatter(best["Price"],)
 
+    for idx, i in enumerate(best["Month"]):
+        best["Month"].iloc[idx] = months_to_numbers[i]
+    best = best.sort_values(by=["Airline", "Month", "Price"])
+    for idx, i in enumerate(best["Month"]):
+        best["Month"].iloc[idx] = numbers_to_months[i]
 
-    plt.show()
+    airlines = list(best["Airline"].drop_duplicates())
+    airlines_2 = airlines
+
+    for idx, i in enumerate(airlines):
+        if idx == 0:
+            airlines_2.pop(idx)
+            best = best[~best['Airline'].str.contains('|'.join(airlines_2))]
+            plt.scatter(best["Month"], best["Price"], c=airline_colors[randint(0, len(airline_colors) - 1)])
+            best = df[(df['Destination'] == destination)]
+            plt.plot(best["Month"], best["Price"], color="mediumorchid", label="best")
+            plt.legend()
+            plt.title(f"price per month for {i}")
+            plt.show()
+            best = df[(df['Destination'] == destination)]
+            airlines_2 = airlines
+        else:
+            airlines_2.pop(idx)
+            best = best[~best['Airline'].str.contains('|'.join(airlines_2))]
+            plt.scatter(best["Month"], best["Price"], c=airline_colors[randint(0, len(airline_colors) - 1)])
+            best = df[(df['Destination'] == destination)]
+            best = best.sort_values(by='Price')
+            best = best.drop_duplicates(subset='Month')
+            best = best.sort_index()
+            plt.plot(best["Month"], best["Price"], color="mediumorchid", label="best")
+            plt.legend()
+            plt.title(f"price per month for {i}")
+            plt.show()
+            best = df[(df['Destination'] == destination)]
+            airlines_2 = airlines
