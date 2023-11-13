@@ -115,7 +115,7 @@ if best_price_month[0] == "y":
         best = best.sort_values(by='Price')
         best = best.drop_duplicates(subset='Month')
         best = best.sort_index()
-        
+
         for jidx, j in enumerate(best["Month"]):
             best["Month"].iloc[idx] = months_to_numbers[i]
         best = best.sort_values(by=["Airline", "Month", "Price"])
