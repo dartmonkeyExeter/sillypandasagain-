@@ -1,10 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-from random import randint
 
-df = pd.read_csv("Task3_data.csv")  # import df
-pd.set_option('display.max_columns', None)  # set display all columns
-pd.options.mode.chained_assignment = None  # set chained assignment to none, this stops a warn earlier that we can ignore
+pd.options.mode.chained_assignment = None
 months_to_numbers = {
     "January": 1,
     "February": 2,
@@ -33,132 +30,199 @@ numbers_to_months = {
     11: "November",
     12: "December",
 }
-possible_destinations = df.drop(columns=["Month", "Airline", "Price"])  # drop everything but destination
-possible_destinations = possible_destinations.drop_duplicates()  # drop duplicates, so only 1 of each destination
-print(possible_destinations)  # print possible destinations
 
-while True:
-    destination = input("What destination would you like to go?\n").strip()
 
-    first_letter = destination[0].upper()  # get the first letter and set it to uppercase
-    destination = destination[1:]  # remove first letter from original string
-    destination = f'{first_letter}{destination}'  # add the first letter string and destination to get formatted input
+# displays main menu and collects user choice of destination
+def menu():
+    flag = True
 
-    if not possible_destinations['Destination'].eq(destination).any():  # if it is not found in destinations column
-        print("Invalid destination, try again.")
-        continue
-    break
+    while flag:
+        print("######################################################")
+        print("########         Choose a destination          ########")
+        print("Alicante (ALC)")
+        print("Amsterdam (AMS)")
+        print("Athens (ATH)")
+        print("Budapest (BUD)")
+        print("Cologne (CGN)")
+        print("Dublin (DUB)")
+        print("Munich (MUC)")
+        print("Paris (CDG)")
+        print("Rhodes (RHO)")
+        print("######################################################")
 
-months = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
-          'August', 'September', 'October', 'November', 'December']  # initialize list with months of year
-for i in months:  # for every month in months
-    print(i)  # print possible months
+        # collects and validates user input to ensure choice is in the list
+        # converts the collected code to full name
 
-while True:
-    month = input("In which month?\n").strip()
+        menu_choice = input("Please enter the three letter "
+                            "destination code").upper()
 
-    first_letter = month[0].upper()  # formatting once again
-    month = month[1:]
-    month = f'{first_letter}{month}'
+        code_list = ["ALC", "AMS", "ATH", "BUD", "CGN", "DUB", "MUC", "CDG",
+                     "RHO"]
+        airport_list = ["Alicante", "Amsterdam", "Athens", "Budapest",
+                        "Cologne", "Dublin", "Munich", "Paris", "Rhodes"]
 
-    if month not in months:  # if input not valid, return to top of loop
-        print("Invalid month, try again.")
-        continue
-    break  # if reached, no errors found in month name, break loop.
+        if menu_choice in code_list:
+            airport_position = code_list.index(menu_choice)
+            return airport_list[airport_position]
+        else:
+            print("Sorry, you did not enter a valid three letter code")
+            flag = True
 
-chosen = df[(df['Month'] == month) & (df['Destination'] == destination)]  # remove all unchosen destinations from list
-chosen = chosen.sort_values(by='Price')  # sort by price
-print(chosen)  # print all the prices and their respective airline.
 
-print(f'The lowest price for that specified destination and date range is '
-      f'£{chosen["Price"].iloc[0]} '
-      f'from {chosen["Airline"].iloc[0]}.'
-      f'\nThe average price is £{round(chosen["Price"].mean(), 2)}')  # print the lowest price, its airline and the mean
-# price
+# collects the month that the user wishes to travel and validates input
+def get_date():
+    flag = True
 
-chosen = chosen.drop_duplicates(subset="Airline")  # since sorted by price, will only drop the duplicate airlines,
-# which are higher than their respective lowest price
-plt.bar(chosen["Airline"], chosen["Price"], label='Price', color='lightcoral')  # plot the airline by the price,
-plt.title(f'Airline prices for {destination} in {month}')  # add title to graph
-plt.legend()  # add legend to graph
-plt.show()  # show
+    while flag:
+        print("######################################################")
+        print("When will you be traveling?")
+        print("Please enter the number of the month you will be travelling ("
+              "1-12)")
+        print("for example June = 6")
+        print("######################################################")
 
-while True:
-    best_price_month = input("Would you like to see the "
-                             "best price for every month? "
-                             "(y for yes, n for no)\n").lower().strip()
+        month_list = ["January", "February", "March", "April", "May", "June",
+                      "July", "August", "September", "October", "November",
+                      "December"]
 
-    if best_price_month[0] == "y":  # only looks at first char of string
-        plt.figure().clear()  # clears figure of previous chart
-        print(possible_destinations)  # print possible destinations
+        month_choice = input("Please enter the number of your choice (1-12): ")
 
-        while True:
-            destination = input("What destination would you like to go?\n").strip()
+        try:
+            int(month_choice)
+        except ValueError:
+            print("Sorry, you did not enter a valid choice")
+            flag = True
+        else:
+            if int(month_choice) < 1 or int(month_choice) > 12:
+                print("Sorry, you did not enter a valid choice")
+                flag = True
+            else:
+                travel_date = month_list[int(month_choice) - 1]
+                return travel_date
 
-            first_letter = destination[0].upper()  # formatting once again
-            destination = destination[1:]
-            destination = f'{first_letter}{destination}'
 
-            if not possible_destinations['Destination'].eq(destination).any():  # input protection
-                print("Invalid destination, try again.")
-                continue
-            break
+destination = menu()
+month = get_date()
 
-        airline_colors = ['firebrick', 'moccasin', 'salmon', 'mediumseagreen',
-                          'royalblue', 'lavender', 'aquamarine', 'red', 'blue', 'purple', 'green']  # establish list
-        # with various python colors in to be used later
-        best = df[(df['Destination'] == destination)]  # set best to the chosen destination
 
-        for idx, i in enumerate(best["Month"]):  # for every index, month in the months column
-            best["Month"].iloc[idx] = months_to_numbers[i]  # set that month to number
-        best = best.sort_values(by=["Airline", "Month", "Price"])  # sort values based on airline, month then price.
-        for idx, i in enumerate(best["Month"]):
-            best["Month"].iloc[idx] = numbers_to_months[i]
+# gets the main list of data that matches user search criteia and displays it
+def get_data():
+    df = pd.read_csv("Task4a_data.csv")
+    extract = df.loc[(df['Month'] == month) &
+                     (df['Destination'] == destination),
+                     df.columns != "Commission (%)"]
+    print("We have found these flights that match your criteria:")
+    return extract
 
-        airlines = list(best["Airline"].drop_duplicates())  # set airlines list to any airlines found with chosen
-        # destination
-        airlines_copy = airlines  # create copy of airlines list
 
-        best_copy = best  # create copy of best dataframe
+extracted_data = get_data()
+extract_no_index = extracted_data.to_string(index=False)
 
-        for idx, i in enumerate(airlines):
-            best = df[(df['Destination'] == destination)]  # reset best at start of every loop
-            best = best.sort_values(by='Price')  # sort by price
-            best = best.drop_duplicates(subset='Month')  # drop duplicate months
-            best = best.sort_index()  # sorts by the index, which ends up sorting by the months since that is how the
-            # df is originally sorted
 
-            try:
-                airlines.pop(idx)  # get rid of current thing from airlines, to be used for scatter
-            except IndexError:
-                break  # no more airlines left
-            plt.plot(best["Month"], best["Price"], color="mediumorchid", label="best")  # plot the best line
-            best = best_copy[(best_copy["Airline"] == i)]  # set best to its copy, with only current airline in the
-            # dataframe
-            plt.scatter(best["Month"], best["Price"], c=airline_colors[randint(0, len(airline_colors) - 1)])
-            # plot a scatter graph with every price per month for the specific airline, with a random color.
+# extracts more meaningful data from the results for comparison
+def compare_data():
+    compare_df = extracted_data[['Airline', 'Price']]
 
-            plt.legend()
-            plt.title(f"price per month for {destination} from {i}")
-            plt.show()
+    column = compare_df['Price']
+    max_price = column.max()
+    min_price = column.min()
 
-            airlines = airlines_copy
-        break
-    elif best_price_month[0] == "n":
-        break
-    else:
-        print("invalid input, try again.")
-        continue
+    most_expensive = compare_df.loc[(extracted_data['Price'] == max_price)]
+    least_expensive = compare_df.loc[(extracted_data['Price'] == min_price)]
 
-print("and finally, presenting the correlation between the first letter of the destination, the first letter of the "
-      "destination and amount of flights!")
-dest = []
-mont = []
+    average_price = round(compare_df['Price'].mean(), 2)
 
-for idx, i in enumerate(df["Destination"]):
-    if str(df["Destination"].iloc[idx])[0] == str(df["Month"].iloc[idx])[0]:
-        dest.append(f'{str(df["Destination"].iloc[idx])}')
-        mont.append(f'{str(df["Month"].iloc[idx])}')
+    print("###############################################")
+    print(f"The most expensive flights to {destination} in {month} are: ")
+    print(most_expensive.to_string(index=False))
+    print("")
+    print(f"The least expensive flights to {destination} in {month} are: ")
+    print(least_expensive.to_string(index=False))
+    print("")
+    print(f"The average price of a flight to {destination} in {month} is: ")
+    print(average_price)
+    print("###############################################")
 
-dest.sort()
-mont.sort()
+    graph_data = compare_df.sort_values(by="Price")
+    graph_data = graph_data.drop_duplicates(subset="Airline")
+    plt.bar(graph_data["Airline"], graph_data["Price"], label="graph",
+            color="lightcoral")
+    plt.title(f'Airline prices for {destination} in {month}')
+    plt.legend()
+    plt.show()
+
+
+def flights_per_airline():
+    df = pd.read_csv("Task4a_data.csv")
+    df = df.groupby('Airline').count()
+    df = df.reset_index()
+    df = df.rename(columns={'Month': 'Total Flights'})
+    plt.bar(df["Airline"], df["Total Flights"])
+    plt.title("Flights per Airline")
+    plt.show()
+
+
+def avg_price_per_month():
+    df = pd.read_csv("Task4a_data.csv")
+    df = df.groupby('Month', sort=False)['Price'].mean()
+    df = df.reset_index()
+    plt.plot(df["Month"], df["Price"], label="Average Price")
+    plt.title("Average Price Per Month For All Destinations")
+    plt.legend()
+    plt.show()
+
+
+def avg_price_per_airline():
+    df = pd.read_csv("Task4a_data.csv")
+    df = df.groupby('Airline', sort=False)['Price'].mean()
+    df = df.reset_index()
+    plt.pie(df["Price"], labels=df["Airline"].tolist())
+    plt.title("Average Price Per Airline")
+    plt.legend()
+    plt.show()
+
+
+def low_avg_max_price_per_month_per_dest():
+    df = pd.read_csv("Task4a_data.csv")
+    df = df[(df["Destination"] == destination)]
+    df_max = df[(df["Destination"] == destination)]
+    df_min = df[(df["Destination"] == destination)]
+    df = df.groupby('Month', sort=False)['Price'].mean()
+    df_max = df_max.groupby('Month', sort=False)['Price'].max()
+    df_min = df_min.groupby('Month', sort=False)['Price'].min()
+    df_max = df_max.reset_index()
+    df_min = df_min.reset_index()
+    df = df.reset_index()
+    plt.plot(df_min["Month"], df_min["Price"], label="Lowest Price", c="red")
+    plt.plot(df["Month"], df["Price"], label="Average Price", c="blue")
+    plt.plot(df_max["Month"], df_max["Price"], label="Highest Price", c="green")
+    plt.title(f"Prices Per Month for {destination}")
+    plt.legend()
+    plt.show()
+
+
+def flights_per_month():
+    df = pd.read_csv("Task4a_data.csv")
+    df = df.groupby('Month', sort=False).count()
+    df = df.reset_index()
+    df = df.rename(columns={'Airline': 'Total Flights'})
+    plt.bar(df["Month"], df["Total Flights"])
+    plt.title("Flights per Month")
+    plt.show()
+
+def bands():
+    df = pd.read_csv("Task4a_data.csv")
+    df['Price Bands'] = pd.cut(df['Price'], bins=3, labels=["Good Price", "Average Price", "Bad Price"])
+    df = df.groupby('Price Bands')['Price'].count()
+    df = df.reset_index()
+    print(df)
+
+
+print(extract_no_index)
+compare_data()
+#flights_per_airline()
+#avg_price_per_month()
+#avg_price_per_airline()
+#low_avg_max_price_per_month_per_dest()
+#flights_per_month()
+bands()
