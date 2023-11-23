@@ -1,0 +1,9 @@
+flights per airline
+avg. price per month
+avg. price per airline
+avg. price per month for paris
+avg. price per month for lift
+avg price per month per destination
+total flights per month
+avg price per month for each destination
+number of flights per price band for each destination
